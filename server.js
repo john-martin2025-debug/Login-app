@@ -72,6 +72,32 @@ app.post('/login', async (req, res) => {
     }
 });
 
+app.post('/reset-password', async (req, res) => {
+    const { email, newPassword } = req.body;
+
+    if (!email || !newPassword) {
+        return res.status(400).json({ error: 'Email and new password are required' });
+    }
+
+    try {
+        const passwordHash = await bcrypt.hash(newPassword, 10);
+
+        const result = await pool.query(
+            'UPDATE users SET password_hash = $1 WHERE email = $2 RETURNING id, email',
+            [passwordHash, email]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'No account found with that email' });
+        }
+
+        res.status(200).json({ message: 'Password reset successful. You can now sign in.' });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
 app.put('/users/:id', async (req, res) => {
     const { id } = req.params;
     const { password } = req.body;

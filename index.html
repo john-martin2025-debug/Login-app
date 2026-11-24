@@ -11,117 +11,175 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: #0f172a;
-            color: #e2e8f0;
+            background: #ffffff;
+            color: #111111;
             padding: 16px;
         }
         .card {
             width: 100%;
-            max-width: 400px;
-            background: #1e293b;
-            border: 1px solid #334155;
-            border-radius: 12px;
-            padding: 28px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            max-width: 380px;
+            background: #ffffff;
+            border: 1px solid #e5e5e5;
+            border-radius: 10px;
+            padding: 32px 28px;
         }
-        h1 { font-size: 1.4rem; margin-bottom: 20px; text-align: center; }
-        .tabs { display: flex; gap: 8px; margin-bottom: 20px; }
-        .tab {
-            flex: 1;
-            padding: 10px;
-            border: none;
+        .logo-slot {
+            height: 64px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px dashed #d4d4d4;
             border-radius: 8px;
-            background: #0f172a;
-            color: #94a3b8;
-            font-weight: 600;
-            cursor: pointer;
+            color: #737373;
+            font-size: 0.85rem;
         }
-        .tab.active { background: #3b82f6; color: #fff; }
+        .logo-slot img {
+            max-height: 100%;
+            max-width: 100%;
+            object-fit: contain;
+        }
+        h1 { font-size: 1.4rem; margin-bottom: 6px; text-align: center; color: #000000; }
+        .subtitle { font-size: 0.9rem; color: #525252; text-align: center; margin-bottom: 22px; }
         form { display: flex; flex-direction: column; gap: 12px; }
         input {
             padding: 11px 12px;
-            border-radius: 8px;
-            border: 1px solid #334155;
-            background: #0f172a;
-            color: #f8fafc;
+            border-radius: 6px;
+            border: 1px solid #d4d4d4;
+            background: #ffffff;
+            color: #111111;
             font-size: 0.95rem;
         }
-        input:focus { outline: none; border-color: #3b82f6; }
+        input:focus { outline: none; border-color: #000000; }
+        .row-right { text-align: right; margin-top: -4px; }
+        .link-btn {
+            background: none;
+            border: none;
+            color: #000000;
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 0;
+            text-decoration: underline;
+        }
         button.primary {
             padding: 11px;
-            border: none;
-            border-radius: 8px;
-            background: #3b82f6;
-            color: #fff;
+            border: 1px solid #000000;
+            border-radius: 6px;
+            background: #000000;
+            color: #ffffff;
             font-weight: 600;
             cursor: pointer;
+            margin-top: 4px;
         }
-        button.primary:hover { background: #2563eb; }
-        button.danger {
-            padding: 11px;
-            border: 1px solid #ef4444;
-            border-radius: 8px;
-            background: transparent;
-            color: #f87171;
-            font-weight: 600;
-            cursor: pointer;
-        }
-        button.danger:hover { background: #ef4444; color: #fff; }
+        button.primary:hover { background: #262626; }
         button.secondary {
             padding: 10px;
-            border: 1px solid #475569;
-            border-radius: 8px;
-            background: transparent;
-            color: #cbd5e1;
+            border: 1px solid #000000;
+            border-radius: 6px;
+            background: #ffffff;
+            color: #000000;
+            font-weight: 600;
             cursor: pointer;
         }
-        .divider { height: 1px; background: #334155; margin: 18px 0; }
+        button.secondary:hover { background: #f5f5f5; }
+        button.danger {
+            padding: 10px;
+            border: 1px solid #d4d4d4;
+            border-radius: 6px;
+            background: #ffffff;
+            color: #111111;
+            cursor: pointer;
+        }
+        button.danger:hover { border-color: #000000; background: #000000; color: #ffffff; }
+        .footer-text {
+            margin-top: 18px;
+            text-align: center;
+            font-size: 0.88rem;
+            color: #525252;
+        }
+        .divider { height: 1px; background: #e5e5e5; margin: 18px 0; }
         .badge {
-            background: #0f172a;
-            border: 1px solid #334155;
-            border-radius: 8px;
+            background: #f5f5f5;
+            border: 1px solid #e5e5e5;
+            border-radius: 6px;
             padding: 12px;
             margin-bottom: 18px;
             font-size: 0.9rem;
-            color: #94a3b8;
+            color: #404040;
         }
-        .badge strong { color: #f8fafc; }
+        .badge strong { color: #000000; }
         #message {
             margin-top: 16px;
             padding: 10px 12px;
-            border-radius: 8px;
-            font-size: 0.9rem;
+            border-radius: 6px;
+            font-size: 0.88rem;
             display: none;
         }
-        #message.success { display: block; background: #064e3b; color: #a7f3d0; }
-        #message.error { display: block; background: #7f1d1d; color: #fecaca; }
+        #message.success { display: block; background: #f5f5f5; color: #111111; border: 1px solid #000000; }
+        #message.error { display: block; background: #111111; color: #ffffff; }
         .hidden { display: none; }
     </style>
 </head>
 <body>
     <div class="card">
-        <h1>Login App</h1>
+        <div class="logo-slot">
+            <!-- Replace with: <img src="logo.png" alt="Logo" /> -->
+            Logo
+        </div>
 
-        <div id="authView">
-            <div class="tabs">
-                <button class="tab active" id="loginTab" type="button">Login</button>
-                <button class="tab" id="signupTab" type="button">Sign Up</button>
-            </div>
+        <div id="loginView">
+            <h1>Sign In</h1>
+            <p class="subtitle">Enter your credentials to continue</p>
 
             <form id="loginForm">
                 <input type="email" id="loginEmail" placeholder="Email" required />
                 <input type="password" id="loginPassword" placeholder="Password" required />
-                <button class="primary" type="submit">Login</button>
+                <div class="row-right">
+                    <button class="link-btn" id="goToForgot" type="button">Forgot password?</button>
+                </div>
+                <button class="primary" type="submit">Sign In</button>
             </form>
 
-            <form id="signupForm" class="hidden">
+            <p class="footer-text">
+                Don't have an account? <button class="link-btn" id="goToSignup" type="button">Sign up</button>
+            </p>
+        </div>
+
+        <div id="signupView" class="hidden">
+            <h1>Create Account</h1>
+            <p class="subtitle">Sign up to get started</p>
+
+            <form id="signupForm">
                 <input type="email" id="signupEmail" placeholder="Email" required />
                 <input type="password" id="signupPassword" placeholder="Password" required />
-                <button class="primary" type="submit">Create Account</button>
+                <button class="primary" type="submit">Sign Up</button>
             </form>
+
+            <p class="footer-text">
+                Already have an account? <button class="link-btn" id="goToLoginFromSignup" type="button">Sign in</button>
+            </p>
+        </div>
+
+        <div id="forgotView" class="hidden">
+            <h1>Reset Password</h1>
+            <p class="subtitle">Enter your email and a new password</p>
+
+            <form id="forgotForm">
+                <input type="email" id="resetEmail" placeholder="Registered Email" required />
+                <input type="password" id="resetPassword" placeholder="New Password" required />
+                <button class="primary" type="submit">Reset Password</button>
+            </form>
+
+            <p class="footer-text">
+                Remembered it? <button class="link-btn" id="goToLoginFromForgot" type="button">Sign in</button>
+            </p>
         </div>
 
         <div id="dashboardView" class="hidden">
+            <h1>Account</h1>
+            <p class="subtitle">Manage your profile</p>
+
             <div class="badge">
                 Signed in as <strong id="userEmail"></strong> (ID: <span id="userId"></span>)
             </div>
@@ -146,12 +204,12 @@
         const API = 'http://localhost:3000';
         let currentUser = null;
 
-        const authView = document.getElementById('authView');
-        const dashboardView = document.getElementById('dashboardView');
-        const loginTab = document.getElementById('loginTab');
-        const signupTab = document.getElementById('signupTab');
-        const loginForm = document.getElementById('loginForm');
-        const signupForm = document.getElementById('signupForm');
+        const views = {
+            login: document.getElementById('loginView'),
+            signup: document.getElementById('signupView'),
+            forgot: document.getElementById('forgotView'),
+            dashboard: document.getElementById('dashboardView')
+        };
         const message = document.getElementById('message');
 
         function showMessage(text, isError = false) {
@@ -164,36 +222,19 @@
             message.className = '';
         }
 
-        function setView(user) {
-            currentUser = user;
-            if (user) {
-                document.getElementById('userEmail').textContent = user.email;
-                document.getElementById('userId').textContent = user.id;
-                authView.classList.add('hidden');
-                dashboardView.classList.remove('hidden');
-            } else {
-                dashboardView.classList.add('hidden');
-                authView.classList.remove('hidden');
-            }
+        function switchView(target) {
+            Object.keys(views).forEach(key => {
+                views[key].classList.toggle('hidden', key !== target);
+            });
+            clearMessage();
         }
 
-        loginTab.addEventListener('click', () => {
-            loginTab.classList.add('active');
-            signupTab.classList.remove('active');
-            loginForm.classList.remove('hidden');
-            signupForm.classList.add('hidden');
-            clearMessage();
-        });
+        document.getElementById('goToSignup').addEventListener('click', () => switchView('signup'));
+        document.getElementById('goToForgot').addEventListener('click', () => switchView('forgot'));
+        document.getElementById('goToLoginFromSignup').addEventListener('click', () => switchView('login'));
+        document.getElementById('goToLoginFromForgot').addEventListener('click', () => switchView('login'));
 
-        signupTab.addEventListener('click', () => {
-            signupTab.classList.add('active');
-            loginTab.classList.remove('active');
-            signupForm.classList.remove('hidden');
-            loginForm.classList.add('hidden');
-            clearMessage();
-        });
-
-        signupForm.addEventListener('submit', async (e) => {
+        document.getElementById('signupForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('signupEmail').value;
             const password = document.getElementById('signupPassword').value;
@@ -205,14 +246,19 @@
                     body: JSON.stringify({ email, password })
                 });
                 const data = await res.json();
-                showMessage(res.ok ? `${data.message}. You can now log in.` : data.error, !res.ok);
-                if (res.ok) signupForm.reset();
+                if (res.ok) {
+                    document.getElementById('signupForm').reset();
+                    switchView('login');
+                    showMessage(`${data.message}. You can now sign in.`);
+                } else {
+                    showMessage(data.error, true);
+                }
             } catch {
                 showMessage('Could not reach server', true);
             }
         });
 
-        loginForm.addEventListener('submit', async (e) => {
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
@@ -225,9 +271,36 @@
                 });
                 const data = await res.json();
                 if (res.ok) {
-                    setView(data.user);
+                    currentUser = data.user;
+                    document.getElementById('userEmail').textContent = currentUser.email;
+                    document.getElementById('userId').textContent = currentUser.id;
+                    document.getElementById('loginForm').reset();
+                    switchView('dashboard');
                     showMessage(data.message);
-                    loginForm.reset();
+                } else {
+                    showMessage(data.error, true);
+                }
+            } catch {
+                showMessage('Could not reach server', true);
+            }
+        });
+
+        document.getElementById('forgotForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('resetEmail').value;
+            const newPassword = document.getElementById('resetPassword').value;
+
+            try {
+                const res = await fetch(`${API}/reset-password`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, newPassword })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    document.getElementById('forgotForm').reset();
+                    switchView('login');
+                    showMessage(data.message);
                 } else {
                     showMessage(data.error, true);
                 }
@@ -255,7 +328,8 @@
         });
 
         document.getElementById('logoutBtn').addEventListener('click', () => {
-            setView(null);
+            currentUser = null;
+            switchView('login');
             showMessage('Logged out');
         });
 
@@ -268,7 +342,8 @@
                 });
                 const data = await res.json();
                 if (res.ok) {
-                    setView(null);
+                    currentUser = null;
+                    switchView('login');
                     showMessage(data.message);
                 } else {
                     showMessage(data.error, true);
