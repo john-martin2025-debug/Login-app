@@ -72,6 +72,37 @@ app.post('/login', async (req, res) => {
     }
 });
 
+app.put('/users/:id', async (req, res) => {
+    const { id } = req.params;
+    const { password } = req.body;
+
+    if (!password) {
+        return res.status(400).json({ error: 'New password is required' });
+    }
+
+    try {
+        const passwordHash = await bcrypt.hash(password, 10);
+
+        const result = await pool.query(
+            'UPDATE users SET password_hash = $1 WHERE id = $2 RETURNING id, email',
+            [passwordHash, id]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(
+404).json({ error: 'User not found' });
+        }
+
+        res.status(200).json({
+            message: 'Password updated successfully',
+            user: result.rows[0]
+        });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });
