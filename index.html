@@ -2,123 +2,38 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login & Sign Up</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            font-family: Arial, sans-serif;
-        }
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f0f2f5;
-        }
-        .card {
-            background: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            width: 340px;
-        }
-        h2 {
-            text-align: center;
-            margin-top: 0;
-        }
-        input {
-            width: 100%;
-            padding: 10px;
-            margin: 8px 0;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        button {
-            width: 100%;
-            padding: 10px;
-            margin-top: 10px;
-            background-color: #0066ff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 15px;
-        }
-        button:hover {
-            background-color: #0052cc;
-        }
-        .toggle {
-            text-align: center;
-            margin-top: 15px;
-            font-size: 14px;
-        }
-        .toggle a {
-            color: #0066ff;
-            cursor: pointer;
-            text-decoration: none;
-        }
-        #message {
-            text-align: center;
-            margin-top: 12px;
-            font-size: 14px;
-            font-weight: bold;
-        }
-    </style>
+    <title>Login App</title>
 </head>
 <body>
-    <div class="card">
-        <h2 id="form-title">Login</h2>
-        <form id="auth-form">
-            <input type="email" id="email" placeholder="Email" required>
-            <input type="password" id="password" placeholder="Password" required>
-            <button type="submit" id="submit-btn">Login</button>
-        </form>
-        <div class="toggle">
-            <span id="toggle-text">Don't have an account?</span>
-            <a id="toggle-link">Sign Up</a>
-        </div>
-        <div id="message"></div>
-    </div>
+    <h2>Sign Up</h2>
+    <form id="signupForm">
+        <input type="email" id="email" placeholder="Email" required />
+        <input type="password" id="password" placeholder="Password" required />
+        <button type="submit">Sign Up</button>
+    </form>
+    <p id="message"></p>
 
     <script>
-        let isLogin = true;
-
-        const formTitle = document.getElementById('form-title');
-        const submitBtn = document.getElementById('submit-btn');
-        const toggleText = document.getElementById('toggle-text');
-        const toggleLink = document.getElementById('toggle-link');
+        const form = document.getElementById('signupForm');
         const message = document.getElementById('message');
-        const authForm = document.getElementById('auth-form');
 
-        toggleLink.addEventListener('click', () => {
-            isLogin = !isLogin;
-            formTitle.textContent = isLogin ? 'Login' : 'Sign Up';
-            submitBtn.textContent = isLogin ? 'Login' : 'Sign Up';
-            toggleText.textContent = isLogin ? "Don't have an account?" : "Already have an account?";
-            toggleLink.textContent = isLogin ? 'Sign Up' : 'Login';
-            message.textContent = '';
-        });
-
-        authForm.addEventListener('submit', async (e) => {
+        form.addEventListener('submit', async (e) => {
             e.preventDefault();
+
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-            const endpoint = isLogin ? 'http://localhost:3000/login' : 'http://localhost:3000/signup';
 
             try {
-                const res = await fetch(endpoint, {
+                const res = await fetch('http://localhost:3000/signup', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, password })
                 });
+
                 const data = await res.json();
-                message.style.color = res.ok ? 'green' : 'red';
-                message.textContent = data.message || data.error;
+                message.textContent = res.ok ? data.message : data.error;
             } catch (err) {
-                message.style.color = 'red';
-                message.textContent = 'Cannot reach server. Is it running?';
+                message.textContent = 'Could not reach server';
             }
         });
     </script>
