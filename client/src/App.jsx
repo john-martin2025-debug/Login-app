@@ -4,22 +4,27 @@ const API = 'http://localhost:3000';
 
 const LEFT_CONTENT = {
   login: {
+    pill: 'Secure Portal',
     title: 'Welcome back.',
-    text: 'Pick up right where you left off. Sign in with your email and password to jump back into your account.'
+    text: 'Pick up right where you left off. Sign in with your email and password to jump back into your workspace.'
   },
   signup: {
+    pill: 'Quick Setup',
     title: 'Start something new.',
     text: 'Create your account in a few seconds. Pick a strong password—or let us generate one for you—and you are good to go.'
   },
   forgot: {
+    pill: 'Account Recovery',
     title: 'Happens to the best of us.',
     text: 'No stress—enter your registered email and set a fresh password to get right back in.'
   },
   loading: {
+    pill: 'Verifying',
     title: 'Almost there...',
-    text: 'Checking your credentials and getting everything ready for you.'
+    text: 'Checking your encrypted credentials and preparing your session.'
   },
   welcome: {
+    pill: 'Session Active',
     title: 'You are all set.',
     text: 'Your session is active and ready. Whenever you want to switch accounts, just hit Back.'
   }
@@ -46,6 +51,16 @@ function getPasswordStrength(password) {
     { width: '100%', label: 'Strong', color: '#10b981' }
   ];
   return levels[Math.max(0, score - 1)];
+}
+
+function BrandLogoSvg() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 2L2 7l10 5 10-5-10-5z" />
+      <path d="M2 17l10 5 10-5" />
+      <path d="M2 12l10 5 10-5" />
+    </svg>
+  );
 }
 
 function PasswordInput({ value, onChange, placeholder }) {
@@ -226,14 +241,32 @@ export default function App() {
   return (
     <div className="layout">
       <section className="left-space">
-        <div className="logo-slot">Logo</div>
+        <div className="grid-overlay" />
+        <div className="orb orb-1" />
+        <div className="orb orb-2" />
 
-        <div className="placeholder-copy" key={view}>
-          <h2>{left.title}</h2>
-          <p>{left.text}</p>
+        <div className="brand-mark">
+          <div className="brand-icon">
+            <BrandLogoSvg />
+          </div>
+          <span>AuthPortal</span>
         </div>
 
-        <div className="left-footer">© 2026 Your Brand</div>
+        <div className="placeholder-copy" key={view}>
+          <div className="hero-pill">
+            <span className="pill-dot" />
+            {left.pill}
+          </div>
+          <h2>{left.title}</h2>
+          <p>{left.text}</p>
+          <div className="feature-chips">
+            <span className="chip">Bcrypt Security</span>
+            <span className="chip">PostgreSQL</span>
+            <span className="chip">React + Express</span>
+          </div>
+        </div>
+
+        <div className="left-footer">© 2026 AuthPortal. All rights reserved.</div>
       </section>
 
       <main className="right-panel">
@@ -244,7 +277,7 @@ export default function App() {
           aria-label="Toggle theme"
         >
           {isDark ? (
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="5" />
               <line x1="12" y1="1" x2="12" y2="3" />
               <line x1="12" y1="21" x2="12" y2="23" />
@@ -256,14 +289,19 @@ export default function App() {
               <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
             </svg>
           ) : (
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
             </svg>
           )}
         </button>
 
         <div className={`auth-box ${shaking ? 'shake' : ''}`} onAnimationEnd={() => setShaking(false)}>
-          <div className="mobile-logo">Logo</div>
+          <div className="mobile-brand">
+            <div className="mobile-brand-icon">
+              <BrandLogoSvg />
+            </div>
+            <span>AuthPortal</span>
+          </div>
 
           {view === 'login' && (
             <div className="view">
@@ -274,7 +312,7 @@ export default function App() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Email"
+                  placeholder="Email address"
                   autoFocus
                   required
                 />
@@ -308,7 +346,7 @@ export default function App() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Email"
+                  placeholder="Email address"
                   autoFocus
                   required
                 />
@@ -406,8 +444,15 @@ export default function App() {
 
           {view === 'welcome' && (
             <div className="view">
-              <h1>{getGreeting()}</h1>
-              <p className="subtitle">You have signed in successfully</p>
+              <div className="welcome-header">
+                <div className="welcome-icon">
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                </div>
+                <h1>{getGreeting()}</h1>
+                <p className="subtitle">You have signed in successfully</p>
+              </div>
               <div className="badge">{currentUser?.email}</div>
               <button
                 className="secondary"
