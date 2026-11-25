@@ -39,7 +39,7 @@ app.post('/signup', async (req, res) => {
       return res.status(400).json({ error: 'Email is already registered' });
     }
     const hashed = await bcrypt.hash(password, 10);
-    await pool.query('INSERT INTO users (email, password) VALUES ($1, $2)', [email, hashed]);
+    await pool.query('INSERT INTO users (email, password_hash) VALUES ($1, $2)', [email, hashed]);
     res.status(201).json({ message: 'Account created successfully' });
   } catch (err) {
     res.status(500).json({ error: 'Server error during sign up' });
@@ -58,9 +58,9 @@ app.post('/login', async (req, res) => {
   }
 
   try {
-    const result = await pool.query('SELECT id, email, password, last_login FROM users WHERE email = $1', [email]);
+    const result = await pool.query('SELECT id, email, password_hash, last_login FROM users WHERE email = $1', [email]);
     const user = result.rows[0];
-    const valid = user ? await bcrypt.compare(password, user.password) : false;
+    const valid = user ? await bcrypt.compare(password, user.password_hash) : false;
 
     if (!user || !valid) {
       const count = (record?.count || 0) + 1;
@@ -95,7 +95,7 @@ app.post('/reset-password', async (req, res) => {
     if (result.rows.length === 0) return res.status(404).json({ error: 'No account found with that email' });
 
     const hashed = await bcrypt.hash(newPassword, 10);
-    await pool.query('UPDATE users SET password = $1 WHERE email = $2', [hashed, email]);
+    await pool.query('UPDATE users SET password_hash = $1 WHERE email = $2', [hashed, email]);
     failedAttempts.delete(email.toLowerCase());
     res.json({ message: 'Password reset successfully. You can now sign in.' });
   } catch (err) {
@@ -120,15 +120,15 @@ app.post('/change-password', authenticateToken, async (req, res) => {
   }
 
   try {
-    const result = await pool.query('SELECT password FROM users WHERE id = $1', [req.user.id]);
+    const result = await pool.query('SELECT password_hash FROM users WHERE id = $1', [req.user.id]);
     const user = result.rows[0];
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    const valid = await bcrypt.compare(currentPassword, user.password);
+    const valid = await bcrypt.compare(currentPassword, user.password_hash);
     if (!valid) return res.status(401).json({ error: 'Current password is incorrect' });
 
     const hashed = await bcrypt.hash(newPassword, 10);
-    await pool.query('UPDATE users SET password = $1 WHERE id = $2', [hashed, req.user.id]);
+    await pool.query('UPDATE users SET password_hash = $1 WHERE id = $2', [hashed, req.user.id]);
     res.json({ message: 'Password updated successfully' });
   } catch (err) {
     res.status(500).json({ error: 'Could not update password' });
