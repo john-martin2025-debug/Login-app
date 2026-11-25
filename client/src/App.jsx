@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 
 const API = 'http://localhost:3000';
+const PALETTES = ['indigo', 'emerald', 'sunset', 'ocean'];
 
 const LEFT_CONTENT = {
   login: {
@@ -111,6 +112,7 @@ function PasswordInput({ value, onChange, placeholder }) {
 export default function App() {
   const [view, setView] = useState('login');
   const [isDark, setIsDark] = useState(false);
+  const [paletteIndex, setPaletteIndex] = useState(0);
   const [currentUser, setCurrentUser] = useState(null);
   const [message, setMessage] = useState({ text: '', isError: false });
   const [shaking, setShaking] = useState(false);
@@ -123,6 +125,17 @@ export default function App() {
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
   }, [isDark]);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-palette', PALETTES[paletteIndex]);
+  }, [paletteIndex]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setPaletteIndex((prev) => (prev + 1) % PALETTES.length);
+    }, 60000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     const handleEsc = (e) => {
