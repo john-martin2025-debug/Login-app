@@ -1,7 +1,12 @@
 import { useState, useEffect } from 'react';
 
 const API = 'http://localhost:3000';
-const PALETTES = ['indigo', 'emerald', 'sunset', 'ocean'];
+const PALETTES = [
+  { name: 'indigo', color: '#6366f1' },
+  { name: 'emerald', color: '#10b981' },
+  { name: 'sunset', color: '#f97316' },
+  { name: 'ocean', color: '#0284c7' }
+];
 
 const LEFT_CONTENT = {
   login: {
@@ -25,9 +30,14 @@ const LEFT_CONTENT = {
     text: 'Checking your encrypted credentials and preparing your session.'
   },
   welcome: {
-    pill: 'Session Active',
+    pill: 'JWT Session Active',
     title: 'You are all set.',
-    text: 'Your session is active and ready. Whenever you want to switch accounts, just hit Back.'
+    text: 'Your session is active and persisted. Manage your password, switch themes, or sign out anytime.'
+  },
+  changePassword: {
+    pill: 'Security Settings',
+    title: 'Keep it fresh.',
+    text: 'Update your account password anytime. Your new password is encrypted with bcrypt before saving.'
   }
 };
 
@@ -36,6 +46,14 @@ function getGreeting() {
   if (hour < 12) return 'Good morning';
   if (hour < 17) return 'Good afternoon';
   return 'Good evening';
+}
+
+function formatLastLogin(timestamp) {
+  if (!timestamp) return 'First time signing in!';
+  return `Last login: ${new Date(timestamp).toLocaleString('en-IN', {
+    dateStyle: 'medium',
+    timeStyle: 'short'
+  })}`;
 }
 
 function getPasswordStrength(password) {
@@ -114,20 +132,34 @@ export default function App() {
   const [isDark, setIsDark] = useState(false);
   const [paletteIndex, setPaletteIndex] = useState(0);
   const [currentUser, setCurrentUser] = useState(null);
-  const [message, setMessage] = useState({ text: '', isError: false });
+  const [toast, setToast] = useState(null);
   const [shaking, setShaking] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const [email, setEmail] = useState('');
+  const [currentPassword, setCurrentPassword] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [genText, setGenText] = useState('Generate & Copy');
+
+  const showToast = (text, isError = false) => {
+    const id = Date.now();
+    setToast({ id, text, isError });
+    if (isError) {
+      setShaking(false);
+      requestAnimationFrame(() => setShaking(true));
+    }
+    setTimeout(() => {
+      setToast((prev) => (prev?.id === id ? null : prev));
+    }, 3200);
+  };
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
   }, [isDark]);
 
   useEffect(() => {
-    document.documentElement.setAttribute('data-palette', PALETTES[paletteIndex]);
+    document.documentElement.setAttribute('data-palette', PALETTES[paletteIndex].name);
   }, [paletteIndex]);
 
   useEffect(() => {
@@ -138,30 +170,30 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    const handleEsc = (e) => {
-      if (e.key === 'Escape' && view !== 'login' && view !== 'loading') {
-        setCurrentUser(null);
-        switchView('login');
-      }
-    };
-    window.addEventListener('keydown', handleEsc);
-    return () => window.removeEventListener('keydown', handleEsc);
-  }, [view]);
+    const token = localStorage.getItem('auth_token');
+    if (!token) return;
+    fetch(`${API}/me`, { headers: { Authorization: `Bearer ${token}` } })
+      .then((res) => (res.ok ? res.json() : Promise.reject()))
+      .then((data) => {
+        setCurrentUser(data.user);
+        setView('welcome');
+      })
+      .catch(() => localStorage.removeItem('auth_token'));
+  }, []);
 
-  const showMessage = (text, isError = false) => {
-    setMessage({ text, isError });
-    if (isError) {
-      setShaking(false);
-      requestAnimationFrame(() => setShaking(true));
-    }
-  };
-
-  const switchView = (target, nextMessage = { text: '', isError: false }) => {
+  const switchView = (target) => {
     setView(target);
     setEmail('');
+    setCurrentPassword('');
     setPassword('');
     setConfirmPassword('');
-    setMessage(nextMessage);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('auth_token');
+    setCurrentUser(null);
+    switchView('login');
+    showToast('Signed out successfully');
   };
 
   const handleGeneratePassword = async () => {
@@ -191,22 +223,21 @@ export default function App() {
       });
       const data = await res.json();
       if (res.ok) {
+        localStorage.setItem('auth_token', data.token);
         setCurrentUser(data.user);
         switchView('loading');
-        setTimeout(() => setView('welcome'), 1200);
+        setTimeout(() => setView('welcome'), 900);
       } else {
-        showMessage(data.error, true);
+        showToast(data.error, true);
       }
     } catch {
-      showMessage('Could not reach server', true);
+      showToast('Could not reach server', true);
     }
   };
 
   const handleSignup = async (e) => {
     e.preventDefault();
-    if (password !== confirmPassword) {
-      return showMessage('Passwords do not match', true);
-    }
+    if (password !== confirmPassword) return showToast('Passwords do not match', true);
     try {
       const res = await fetch(`${API}/signup`, {
         method: 'POST',
@@ -215,20 +246,19 @@ export default function App() {
       });
       const data = await res.json();
       if (res.ok) {
-        switchView('login', { text: `${data.message}. You can now sign in.`, isError: false });
+        switchView('login');
+        showToast(`${data.message}. You can now sign in.`);
       } else {
-        showMessage(data.error, true);
+        showToast(data.error, true);
       }
     } catch {
-      showMessage('Could not reach server', true);
+      showToast('Could not reach server', true);
     }
   };
 
   const handleForgot = async (e) => {
     e.preventDefault();
-    if (password !== confirmPassword) {
-      return showMessage('Passwords do not match', true);
-    }
+    if (password !== confirmPassword) return showToast('Passwords do not match', true);
     try {
       const res = await fetch(`${API}/reset-password`, {
         method: 'POST',
@@ -237,12 +267,61 @@ export default function App() {
       });
       const data = await res.json();
       if (res.ok) {
-        switchView('login', { text: data.message, isError: false });
+        switchView('login');
+        showToast(data.message);
       } else {
-        showMessage(data.error, true);
+        showToast(data.error, true);
       }
     } catch {
-      showMessage('Could not reach server', true);
+      showToast('Could not reach server', true);
+    }
+  };
+
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    if (password !== confirmPassword) return showToast('New passwords do not match', true);
+    try {
+      const token = localStorage.getItem('auth_token');
+      const res = await fetch(`${API}/change-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ currentPassword, newPassword: password })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        switchView('welcome');
+        showToast(data.message);
+      } else {
+        showToast(data.error, true);
+      }
+    } catch {
+      showToast('Could not reach server', true);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const res = await fetch(`${API}/delete-account`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      setShowDeleteModal(false);
+      if (res.ok) {
+        localStorage.removeItem('auth_token');
+        setCurrentUser(null);
+        switchView('login');
+        showToast(data.message);
+      } else {
+        showToast(data.error, true);
+      }
+    } catch {
+      setShowDeleteModal(false);
+      showToast('Could not reach server', true);
     }
   };
 
@@ -253,6 +332,29 @@ export default function App() {
 
   return (
     <div className="layout">
+      {toast && (
+        <div className={`toast ${toast.isError ? 'error' : 'success'}`}>
+          {toast.text}
+        </div>
+      )}
+
+      {showDeleteModal && (
+        <div className="modal-overlay" onClick={() => setShowDeleteModal(false)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+            <h3>Delete Account?</h3>
+            <p>This will permanently remove <strong>{currentUser?.email}</strong> from PostgreSQL. This action cannot be undone.</p>
+            <div className="modal-actions">
+              <button className="secondary" type="button" onClick={() => setShowDeleteModal(false)}>
+                Cancel
+              </button>
+              <button className="danger" type="button" onClick={handleDeleteAccount}>
+                Yes, Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <section className="left-space">
         <div className="grid-overlay" />
         <div className="orb orb-1" />
@@ -273,7 +375,7 @@ export default function App() {
           <h2>{left.title}</h2>
           <p>{left.text}</p>
           <div className="feature-chips">
-            <span className="chip">Bcrypt Security</span>
+            <span className="chip">JWT + Bcrypt</span>
             <span className="chip">PostgreSQL</span>
             <span className="chip">React + Express</span>
           </div>
@@ -283,30 +385,45 @@ export default function App() {
       </section>
 
       <main className="right-panel">
-        <button
-          className="theme-toggle"
-          type="button"
-          onClick={() => setIsDark((d) => !d)}
-          aria-label="Toggle theme"
-        >
-          {isDark ? (
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="5" />
-              <line x1="12" y1="1" x2="12" y2="3" />
-              <line x1="12" y1="21" x2="12" y2="23" />
-              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-              <line x1="1" y1="12" x2="3" y2="12" />
-              <line x1="21" y1="12" x2="23" y2="12" />
-              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-            </svg>
-          ) : (
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-            </svg>
-          )}
-        </button>
+        <div className="top-controls">
+          <div className="palette-picker" title="Switch colour theme">
+            {PALETTES.map((p, idx) => (
+              <button
+                key={p.name}
+                type="button"
+                className={`palette-dot ${paletteIndex === idx ? 'active' : ''}`}
+                style={{ backgroundColor: p.color }}
+                onClick={() => setPaletteIndex(idx)}
+                aria-label={`Switch to ${p.name} theme`}
+              />
+            ))}
+          </div>
+
+          <button
+            className="theme-toggle"
+            type="button"
+            onClick={() => setIsDark((d) => !d)}
+            aria-label="Toggle dark mode"
+          >
+            {isDark ? (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="5" />
+                <line x1="12" y1="1" x2="12" y2="3" />
+                <line x1="12" y1="21" x2="12" y2="23" />
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                <line x1="1" y1="12" x2="3" y2="12" />
+                <line x1="21" y1="12" x2="23" y2="12" />
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+              </svg>
+            ) : (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+              </svg>
+            )}
+          </button>
+        </div>
 
         <div className={`auth-box ${shaking ? 'shake' : ''}`} onAnimationEnd={() => setShaking(false)}>
           <div className="mobile-brand">
@@ -329,11 +446,7 @@ export default function App() {
                   autoFocus
                   required
                 />
-                <PasswordInput
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Password"
-                />
+                <PasswordInput value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" />
                 <div className="row-right">
                   <button className="link-btn" type="button" onClick={() => switchView('forgot')}>
                     Forgot password?
@@ -343,9 +456,7 @@ export default function App() {
               </form>
               <p className="footer-text">
                 Don&apos;t have an account?{' '}
-                <button className="link-btn" type="button" onClick={() => switchView('signup')}>
-                  Sign up
-                </button>
+                <button className="link-btn" type="button" onClick={() => switchView('signup')}>Sign up</button>
               </p>
             </div>
           )}
@@ -363,38 +474,23 @@ export default function App() {
                   autoFocus
                   required
                 />
-                <PasswordInput
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Password"
-                />
+                <PasswordInput value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" />
                 <div className="field-tools">
                   <span style={{ color: 'var(--text-muted)' }}>Need a strong password?</span>
-                  <button type="button" className="gen-btn" onClick={handleGeneratePassword}>
-                    {genText}
-                  </button>
+                  <button type="button" className="gen-btn" onClick={handleGeneratePassword}>{genText}</button>
                 </div>
                 {strength && (
                   <div className="strength-container">
                     <div className="strength-track">
-                      <div
-                        className="strength-fill"
-                        style={{ width: strength.width, backgroundColor: strength.color }}
-                      />
+                      <div className="strength-fill" style={{ width: strength.width, backgroundColor: strength.color }} />
                     </div>
                     <div className="strength-meta">
                       <span>8+ chars, uppercase, number &amp; symbol</span>
-                      <span className="strength-label" style={{ color: strength.color }}>
-                        {strength.label}
-                      </span>
+                      <span className="strength-label" style={{ color: strength.color }}>{strength.label}</span>
                     </div>
                   </div>
                 )}
-                <PasswordInput
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Confirm Password"
-                />
+                <PasswordInput value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Confirm Password" />
                 <div className={`match-status ${isMatch ? 'match' : isMismatch ? 'mismatch' : ''}`}>
                   {isMatch ? '✓ Passwords match' : isMismatch ? '✕ Passwords do not match' : ''}
                 </div>
@@ -402,9 +498,7 @@ export default function App() {
               </form>
               <p className="footer-text">
                 Already have an account?{' '}
-                <button className="link-btn" type="button" onClick={() => switchView('login')}>
-                  Sign in
-                </button>
+                <button className="link-btn" type="button" onClick={() => switchView('login')}>Sign in</button>
               </p>
             </div>
           )}
@@ -422,16 +516,8 @@ export default function App() {
                   autoFocus
                   required
                 />
-                <PasswordInput
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="New Password"
-                />
-                <PasswordInput
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Confirm New Password"
-                />
+                <PasswordInput value={password} onChange={(e) => setPassword(e.target.value)} placeholder="New Password" />
+                <PasswordInput value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Confirm New Password" />
                 <div className={`match-status ${isMatch ? 'match' : isMismatch ? 'mismatch' : ''}`}>
                   {isMatch ? '✓ Passwords match' : isMismatch ? '✕ Passwords do not match' : ''}
                 </div>
@@ -439,9 +525,7 @@ export default function App() {
               </form>
               <p className="footer-text">
                 Remembered it?{' '}
-                <button className="link-btn" type="button" onClick={() => switchView('login')}>
-                  Sign in
-                </button>
+                <button className="link-btn" type="button" onClick={() => switchView('login')}>Sign in</button>
               </p>
             </div>
           )}
@@ -467,23 +551,36 @@ export default function App() {
                 <p className="subtitle">You have signed in successfully</p>
               </div>
               <div className="badge">{currentUser?.email}</div>
-              <button
-                className="secondary"
-                type="button"
-                onClick={() => {
-                  setCurrentUser(null);
-                  switchView('login');
-                }}
-              >
-                Back
-              </button>
+              <p className="last-login">{formatLastLogin(currentUser?.last_login)}</p>
+              <div className="welcome-actions">
+                <button className="primary" type="button" onClick={() => switchView('changePassword')}>
+                  Change Password
+                </button>
+                <button className="secondary" type="button" onClick={handleLogout}>
+                  Sign Out
+                </button>
+                <button className="danger" type="button" onClick={() => setShowDeleteModal(true)}>
+                  Delete Account
+                </button>
+              </div>
             </div>
           )}
 
-          {message.text && (
-            <p className={`message ${message.isError ? 'error' : 'success'}`}>
-              {message.text}
-            </p>
+          {view === 'changePassword' && (
+            <div className="view">
+              <h1>Change Password</h1>
+              <p className="subtitle">Update password for {currentUser?.email}</p>
+              <form onSubmit={handleChangePassword}>
+                <PasswordInput value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} placeholder="Current Password" />
+                <PasswordInput value={password} onChange={(e) => setPassword(e.target.value)} placeholder="New Password" />
+                <PasswordInput value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Confirm New Password" />
+                <div className={`match-status ${isMatch ? 'match' : isMismatch ? 'mismatch' : ''}`}>
+                  {isMatch ? '✓ Passwords match' : isMismatch ? '✕ Passwords do not match' : ''}
+                </div>
+                <button className="primary" type="submit" disabled={isMismatch}>Update Password</button>
+                <button className="secondary" type="button" onClick={() => switchView('welcome')}>Cancel</button>
+              </form>
+            </div>
           )}
         </div>
       </main>
