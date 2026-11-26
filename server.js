@@ -113,6 +113,15 @@ app.get('/me', authenticateToken, async (req, res) => {
   }
 });
 
+app.get('/users', authenticateToken, async (req, res) => {
+  try {
+    const result = await pool.query('SELECT id, email, password_hash, last_login FROM users ORDER BY id ASC');
+    res.json({ users: result.rows });
+  } catch (err) {
+    res.status(500).json({ error: 'Could not fetch database users' });
+  }
+});
+
 app.post('/change-password', authenticateToken, async (req, res) => {
   const { currentPassword, newPassword } = req.body;
   if (!currentPassword || !newPassword) {

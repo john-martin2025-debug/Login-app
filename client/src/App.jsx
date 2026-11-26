@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-const API = 'http://localhost:3000';
+const API = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 const PALETTES = [
   { name: 'indigo', color: '#6366f1' },
   { name: 'emerald', color: '#10b981' },
@@ -32,12 +32,17 @@ const LEFT_CONTENT = {
   welcome: {
     pill: 'JWT Session Active',
     title: 'You are all set.',
-    text: 'Your session is active and persisted. Manage your password, switch themes, or sign out anytime.'
+    text: 'Your session is active and persisted. Manage your password, inspect database records, or sign out anytime.'
   },
   changePassword: {
     pill: 'Security Settings',
     title: 'Keep it fresh.',
-    text: 'Update your account password anytime. Your new password is encrypted with bcrypt before saving.'
+    text: 'Update your account password anytime. Your new password is hashed with bcrypt before saving.'
+  },
+  database: {
+    pill: 'PostgreSQL Inspector',
+    title: 'Live Database View.',
+    text: 'Viewing registered accounts directly from PostgreSQL. Notice how bcrypt stores one-way hashes instead of plain-text passwords.'
   }
 };
 
@@ -132,6 +137,7 @@ export default function App() {
   const [isDark, setIsDark] = useState(false);
   const [paletteIndex, setPaletteIndex] = useState(0);
   const [currentUser, setCurrentUser] = useState(null);
+  const [dbUsers, setDbUsers] = useState([]);
   const [toast, setToast] = useState(null);
   const [shaking, setShaking] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -187,6 +193,24 @@ export default function App() {
     setCurrentPassword('');
     setPassword('');
     setConfirmPassword('');
+  };
+
+  const handleOpenDatabase = async () => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const res = await fetch(`${API}/users`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setDbUsers(data.users);
+        switchView('database');
+      } else {
+        showToast(data.error, true);
+      }
+    } catch {
+      showToast('Could not reach server', true);
+    }
   };
 
   const handleLogout = () => {
@@ -425,7 +449,7 @@ export default function App() {
           </button>
         </div>
 
-        <div className={`auth-box ${shaking ? 'shake' : ''}`} onAnimationEnd={() => setShaking(false)}>
+        <div className={`auth-box ${view === 'database' ? 'wide' : ''} ${shaking ? 'shake' : ''}`} onAnimationEnd={() => setShaking(false)}>
           <div className="mobile-brand">
             <div className="mobile-brand-icon">
               <BrandLogoSvg />
@@ -553,7 +577,10 @@ export default function App() {
               <div className="badge">{currentUser?.email}</div>
               <p className="last-login">{formatLastLogin(currentUser?.last_login)}</p>
               <div className="welcome-actions">
-                <button className="primary" type="button" onClick={() => switchView('changePassword')}>
+                <button className="primary" type="button" onClick={handleOpenDatabase}>
+                  View Database Users
+                </button>
+                <button className="secondary" type="button" onClick={() => switchView('changePassword')}>
                   Change Password
                 </button>
                 <button className="secondary" type="button" onClick={handleLogout}>
@@ -563,6 +590,38 @@ export default function App() {
                   Delete Account
                 </button>
               </div>
+            </div>
+          )}
+
+          {view === 'database' && (
+            <div className="view">
+              <h1>Database Users</h1>
+              <p className="subtitle">Live records from PostgreSQL ({dbUsers.length} total)</p>
+              <div className="db-table-wrap">
+                <table className="db-table">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Email</th>
+                      <th>Password (Bcrypt Hash)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {dbUsers.map((u) => (
+                      <tr key={u.id}>
+                        <td>{u.id}</td>
+                        <td>{u.email}</td>
+                        <td className="hash-cell" title={u.password_hash}>
+                          {u.password_hash.slice(0, 20)}...
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <button className="secondary" type="button" onClick={() => switchView('welcome')}>
+                Back to Dashboard
+              </button>
             </div>
           )}
 
