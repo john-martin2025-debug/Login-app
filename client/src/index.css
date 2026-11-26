@@ -856,3 +856,128 @@ button.danger:hover {
     font-size: 0.74rem;
     color: var(--primary);
 }
+
+/* Auto-cycle toggle active highlight */
+.theme-toggle.cycle-on {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+/* Remember Me + Forgot row */
+.auth-options-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: -4px 0 16px;
+    font-size: 0.85rem;
+}
+
+.remember-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-muted);
+    cursor: pointer;
+    user-select: none;
+}
+
+.remember-label input[type="checkbox"] {
+    width: 15px;
+    height: 15px;
+    margin: 0;
+    accent-color: var(--primary);
+    cursor: pointer;
+}
+
+/* Welcome Stats Strip */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.stat-card {
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 10px 8px;
+    text-align: center;
+}
+
+.stat-label {
+    display: block;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+}
+
+.stat-value {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+/* JWT Inspector */
+.jwt-panel {
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 16px;
+    text-align: left;
+}
+
+.jwt-pre {
+    margin: 0;
+    font-family: monospace;
+    font-size: 0.74rem;
+    color: var(--primary);
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+/* Database Toolbar & Inline Delete */
+.db-toolbar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.db-toolbar input {
+    margin-bottom: 0;
+    flex: 1;
+    padding: 10px 12px;
+    font-size: 0.85rem;
+}
+
+.export-btn {
+    width: auto;
+    padding: 0 14px;
+    font-size: 0.82rem;
+    white-space: nowrap;
+    margin: 0;
+}
+
+.icon-danger-btn {
+    width: auto;
+    padding: 6px;
+    margin: 0;
+    background: transparent;
+    color: #ef4444;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.icon-danger-btn:hover {
+    background: rgba(239, 68, 68, 0.12);
+    border-color: rgba(239, 68, 68, 0.3);
+}

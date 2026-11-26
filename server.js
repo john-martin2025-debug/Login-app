@@ -54,11 +54,17 @@ app.post('/login', async (req, res) => {
   const record = failedAttempts.get(key);
   if (record && record.lockUntil && Date.now() < record.lockUntil) {
     const secondsLeft = Math.ceil((record.lockUntil - Date.now()) / 1000);
-    return res.status(429).json({ error: `Too many failed attempts. Try again in ${secondsLeft}s.` });
+    return res.status(429).json({
+      error: `Too many failed attempts. Try again in ${secondsLeft}s.`,
+      retryAfter: secondsLeft
+    });
   }
 
   try {
-    const result = await pool.query('SELECT id, email, password_hash, last_login FROM users WHERE email = $1', [email]);
+    const result = await pool.query(
+      'SELECT id, email, password_hash, created_at, last_login FROM users WHERE email = $1',
+      [email]
+    );
     const user = result.rows[0];
     const valid = user ? await bcrypt.compare(password, user.password_hash) : false;
 
@@ -66,7 +72,10 @@ app.post('/login', async (req, res) => {
       const count = (record?.count || 0) + 1;
       if (count >= MAX_ATTEMPTS) {
         failedAttempts.set(key, { count: 0, lockUntil: Date.now() + COOLDOWN_MS });
-        return res.status(429).json({ error: 'Too many failed attempts. Locked for 30 seconds.' });
+        return res.status(429).json({
+          error: 'Too many failed attempts. Locked for 30 seconds.',
+          retryAfter: 30
+        });
       }
       failedAttempts.set(key, { count, lockUntil: null });
       return res.status(401).json({ error: `Invalid email or password (${MAX_ATTEMPTS - count} tries left)` });
@@ -75,11 +84,18 @@ app.post('/login', async (req, res) => {
     failedAttempts.delete(key);
     const previousLogin = user.last_login;
     await pool.query('UPDATE users SET last_login = NOW() WHERE id = $1', [user.id]);
+    const countRes = await pool.query('SELECT COUNT(*)::int AS total FROM users');
 
     const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '2h' });
     res.json({
       token,
-      user: { id: user.id, email: user.email, last_login: previousLogin }
+      totalUsers: countRes.rows[0].total,
+      user: {
+        id: user.id,
+        email: user.email,
+        created_at: user.created_at,
+        last_login: previousLogin
+      }
     });
   } catch (err) {
     res.status(500).json({ error: 'Server error during sign in' });
@@ -105,9 +121,13 @@ app.post('/reset-password', async (req, res) => {
 
 app.get('/me', authenticateToken, async (req, res) => {
   try {
-    const result = await pool.query('SELECT id, email, last_login FROM users WHERE id = $1', [req.user.id]);
+    const result = await pool.query(
+      'SELECT id, email, created_at, last_login FROM users WHERE id = $1',
+      [req.user.id]
+    );
     if (result.rows.length === 0) return res.status(404).json({ error: 'User not found' });
-    res.json({ user: result.rows[0] });
+    const countRes = await pool.query('SELECT COUNT(*)::int AS total FROM users');
+    res.json({ user: result.rows[0], totalUsers: countRes.rows[0].total });
   } catch (err) {
     res.status(500).json({ error: 'Could not verify session' });
   }
@@ -115,10 +135,22 @@ app.get('/me', authenticateToken, async (req, res) => {
 
 app.get('/users', authenticateToken, async (req, res) => {
   try {
-    const result = await pool.query('SELECT id, email, password_hash, last_login FROM users ORDER BY id ASC');
+    const result = await pool.query(
+      'SELECT id, email, password_hash, created_at, last_login FROM users ORDER BY id ASC'
+    );
     res.json({ users: result.rows });
   } catch (err) {
     res.status(500).json({ error: 'Could not fetch database users' });
+  }
+});
+
+app.delete('/users/:id', authenticateToken, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    await pool.query('DELETE FROM users WHERE id = $1', [id]);
+    res.json({ message: 'User deleted from database' });
+  } catch (err) {
+    res.status(500).json({ error: 'Could not delete user' });
   }
 });
 
