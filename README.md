@@ -2,6 +2,9 @@
 
 A full-stack authentication and account management web application built with **React (Vite)**, **Node.js/Express**, and **PostgreSQL** (containerized with **Podman**).
 
+**Live Demo:** https://login-app-vert-sigma.vercel.app  
+*(Hosted on Vercel, Render, and Neon. Note: The free-tier backend may take ~30–50 seconds to wake up on the first request.)*
+
 ## Tech Stack
 * **Frontend:** React, Vite, CSS3 (Glassmorphism, Light/Dark themes)
 * **Backend:** Node.js, Express, `jsonwebtoken` (JWT), `bcrypt`, `cors`, `pg`
