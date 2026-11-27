@@ -24,6 +24,20 @@ A full-stack authentication and account management web application built with **
 * **Theme Controls:** Full-page Light/Dark mode toggle and an Auto-Switch / Lock Colour toggle cycling through 4 palettes (Indigo, Emerald, Sunset, Ocean).
 * **Smart Form Controls:** Show/hide password toggle, live Caps Lock indicator, strong password generator with clipboard copy, password strength meter, and real-time match validation.
 
+## Screenshots
+
+### Sign In & Theme Controls
+<img width="1365" height="632" alt="Screenshot 2026-11-27 101751" src="https://github.com/user-attachments/assets/e039a7e0-4a6e-489f-96b7-e832fa94d14a" />
+
+
+### User Dashboard & JWT Inspector
+<img width="1365" height="628" alt="Screenshot 2026-11-27 102039" src="https://github.com/user-attachments/assets/9cb20404-ed3c-4d5e-8786-035879d8381d" />
+
+
+### Live PostgreSQL Database Inspector
+<img width="1365" height="632" alt="Screenshot 2026-11-27 102106" src="https://github.com/user-attachments/assets/770aa997-27da-4977-8b43-0365a7f0dd8f" />
+
+
 ## Local Setup
 
 1. **Start PostgreSQL (Podman):**
